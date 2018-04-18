@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 public class UrgAreaSensor : MonoBehaviour {
 
+	public delegate void  UrgAreaSensorDelegate( List<Vector2> _points, int _areaWidth, int _areaHeight );
+	public event UrgAreaSensorDelegate ReceiveHandlers;
+
 	string ip_address = "192.168.0.10"; 
 	int port_number = 10940;
 
@@ -33,6 +36,9 @@ public class UrgAreaSensor : MonoBehaviour {
     float[] view_points_y = new float[500];
 
 	List<Vector2> points = new List<Vector2>();
+	List<Vector2> normalizePoints = new List<Vector2>();
+
+    int mabikiCount = 0;
 
     void Awake() {
         Application.targetFrameRate = 100;
@@ -93,6 +99,7 @@ public class UrgAreaSensor : MonoBehaviour {
         }
 
         points.Clear();
+        normalizePoints.Clear();
 
         int pindex = 0;
 
@@ -116,7 +123,16 @@ public class UrgAreaSensor : MonoBehaviour {
             }
             else if( _tmpTotal > 0 ) { // inXY が続かなかったらpoint算出
 
-                points.Add(new Vector2(_tmpCountX / _tmpTotal, _tmpCountY / _tmpTotal));
+
+                float _x = _tmpCountX / _tmpTotal;
+                float _y = _tmpCountY / _tmpTotal;
+
+                points.Add(new Vector2(_x, _y));
+
+                float _nx = _x - ( -( AREA_WIDTH * 0.5f ) + AREA_OFFSET_X );
+                float _ny = _y - ( -( AREA_HEIGHT * 0.5f ) + AREA_OFFSET_Y );
+
+                normalizePoints.Add(new Vector2(_nx, _ny));
 
                 pindex += 1;
 
@@ -131,12 +147,20 @@ public class UrgAreaSensor : MonoBehaviour {
         }
 
         SetViewMat();
+
+        if( mabikiCount == 3 ) {
+            ReceiveHandlers(normalizePoints, AREA_WIDTH, AREA_HEIGHT);
+            mabikiCount = 0;
+        }
+        else {
+            mabikiCount += 1;
+        }
     }
 
     bool GetInArea( float x, float y ) {
 
-        bool inX = -( AREA_WIDTH * 0.5 ) + AREA_OFFSET_X <= x && x <= ( AREA_WIDTH * 0.5 ) + AREA_OFFSET_X;
-        bool inY = -( AREA_HEIGHT * 0.5 ) + AREA_OFFSET_Y <= y && y <= ( AREA_HEIGHT * 0.5 ) + AREA_OFFSET_Y;
+        bool inX = -( AREA_WIDTH * 0.5f ) + AREA_OFFSET_X <= x && x <= ( AREA_WIDTH * 0.5f ) + AREA_OFFSET_X;
+        bool inY = -( AREA_HEIGHT * 0.5f ) + AREA_OFFSET_Y <= y && y <= ( AREA_HEIGHT * 0.5f ) + AREA_OFFSET_Y;
 
         return inX && inY;
     }
