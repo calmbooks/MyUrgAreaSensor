@@ -75,7 +75,7 @@ Shader "Custom/UrgSensorArea" {
                         float y = 0.5+(_points_y[j]/-_HeightPx);
 
                         if( x <= 1.0 ) {
-                            drawCircle( float2(x,y), 0.01, float3(1.0,0.0,0.0), i.uv, dest );
+                            drawCircle( float2(x,y), 0.005, float3(1.0,0.0,0.0), i.uv, dest );
                         }
                     }
 
